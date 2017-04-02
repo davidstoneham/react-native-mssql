@@ -1,6 +1,6 @@
 {
   "name": "react-native-mssql",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "MSSQL bindings for React Native (Android)",
   "main": "index.android.js",
   "scripts": {

@@ -248,6 +248,8 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
                     obj.put(column_name, rs.getDate(i));
                 } else if (rsmd.getColumnType(i) == java.sql.Types.TIMESTAMP) {
                     obj.put(column_name, rs.getTimestamp(i));
+                } else if (rsmd.getColumnType(i) == java.sql.Types.REAL) {
+                    obj.put(column_name, rs.getFloat(i));
                 } else {
                     obj.put(column_name, rs.getObject(i));
                 }
