@@ -30,7 +30,8 @@ import com.iodine.start.ArrayUtil;
  * Created by David Stoneham on 2017-02-25.
  */
 public class MSSQLModule extends ReactContextBaseJavaModule {
-    private WritableArray sqlResponse;
+    private WritableArray sqlQueryResponse;
+    private int sqlNonQueryResponse;
     private String sqlError;
     private Promise sqlPromise;
     private Connection dbConnection;
@@ -115,7 +116,7 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
                     JSONArray json = toJSON(rs);
                     Object[] array = ArrayUtil.toArray(json);
                     WritableArray writableArray = ArrayUtil.toWritableArray(array);
-                    sqlResponse = writableArray;
+                    sqlQueryResponse = writableArray;
                 } catch (SQLException e) {
                     Log.e(eTag, e.getMessage());
                     sqlError = e.getMessage();
@@ -130,8 +131,49 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
             }
 
             protected void onPostExecute(Void dummy) {
-                if (null != sqlResponse) {
-                    sqlPromise.resolve(sqlResponse);
+                if (null != sqlQueryResponse) {
+                    sqlPromise.resolve(sqlQueryResponse);
+                } else {
+                    sqlPromise.reject(eTag, sqlError);
+                }
+            }
+        }.execute(query);
+    }
+
+     @ReactMethod
+    public void executeUpdate(String query, Promise promise) {
+        sqlPromise = promise;
+        sqlNonQueryResponse=-1;
+        new AsyncTask < String, Void, Void > () {
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+            }
+
+            @Override
+            protected Void doInBackground(String...params) {
+                String classs = "net.sourceforge.jtds.jdbc.Driver";
+                String query = params[0];
+                try {
+                    Class.forName(classs);
+                    Statement stmt = dbConnection.createStatement();
+                    sqlNonQueryResponse = stmt.executeUpdate(query);
+                } catch (SQLException e) {
+                    Log.e(eTag, e.getMessage());
+                    sqlError = e.getMessage();
+                } catch (ClassNotFoundException e) {
+                    Log.e(eTag, e.getMessage());
+                    sqlError = e.getMessage();
+                } catch (Exception e) {
+                    Log.e(eTag, e.getMessage());
+                    sqlError = e.getMessage();
+                }
+                return null;
+            }
+
+            protected void onPostExecute(Void dummy) {
+                if (sqlNonQueryResponse>-1) {
+                    sqlPromise.resolve(sqlNonQueryResponse);
                 } else {
                     sqlPromise.reject(eTag, sqlError);
                 }

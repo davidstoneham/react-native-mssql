@@ -74,6 +74,13 @@ Returns a promise indicating if the connection was successful.
 ```
 Returns a promise with the query results. If Getting data from a table the promise will return an array of objects for each table row.
 
+#### Execute Update SQL
+```js
+    let query = 'UPDATE USERS SET Active=0'
+    MSSQL.executeUpdate(query);
+```
+Returns a promise with the number of rows updated. Use this method if performing INSERT, UPDATE or DELETE statements on a database.
+
 #### Close a Database
 ```js
     MSSQL.close();
