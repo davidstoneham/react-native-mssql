@@ -18,6 +18,7 @@ import java.sql.Statement;
 import java.sql.SQLException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.util.Date;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -255,11 +256,11 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
                 } else if (rsmd.getColumnType(i) == java.sql.Types.NUMERIC) {
                     obj.put(column_name, rs.getBigDecimal(i).doubleValue());
                 } else if (rsmd.getColumnType(i) == java.sql.Types.DATE) {
-                    obj.put(column_name, rs.getDate(i));
+                    obj.put(column_name, rs.getDate(i).toString());
                 } else if (rsmd.getColumnType(i) == java.sql.Types.TIME) {
-                    obj.put(column_name, rs.getDate(i));
+                    obj.put(column_name, rs.getDate(i).toString());
                 } else if (rsmd.getColumnType(i) == java.sql.Types.TIMESTAMP) {
-                    obj.put(column_name, rs.getTimestamp(i));
+                    obj.put(column_name, rs.getTimestamp(i).toString());
                 } else if (rsmd.getColumnType(i) == java.sql.Types.ARRAY) {
                     obj.put(column_name, rs.getArray(i));
                 } else if (rsmd.getColumnType(i) == java.sql.Types.BOOLEAN) {
