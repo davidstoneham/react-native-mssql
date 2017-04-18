@@ -50,24 +50,21 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
         String username = config.getString("username");
         String password = config.getString("password");
         String database = config.getString("database");
-        if (config.hasKey("port")){
-           int port = config.getInt("port");
-           server = server + ":" + port;
+        if (config.hasKey("port")) {
+            int port = config.getInt("port");
+            server = server + ":" + port;
         }
-        String ConnURL = "jdbc:jtds:sqlserver://" + server + ";" +
-                        "databaseName=" + database +
-                        ";useLOBs=false" +
-                        ";user=" + username +
-                        ";password=" + password + ";";
+        String ConnURL = "jdbc:jtds:sqlserver://" + server + ";" + "databaseName=" + database + ";useLOBs=false"
+                + ";user=" + username + ";password=" + password + ";loginTimeout=5;socketTimeout=2;";
 
-        new AsyncTask < String, Void, Void > () {
+        new AsyncTask<String, Void, Void>() {
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
             }
 
             @Override
-            protected Void doInBackground(String...params) {
+            protected Void doInBackground(String... params) {
                 String classs = "net.sourceforge.jtds.jdbc.Driver";
                 String ConnURL = params[0];
                 try {
@@ -100,14 +97,14 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
     public void executeQuery(String query, Promise promise) {
         sqlPromise = promise;
 
-        new AsyncTask < String, Void, Void > () {
+        new AsyncTask<String, Void, Void>() {
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
             }
 
             @Override
-            protected Void doInBackground(String...params) {
+            protected Void doInBackground(String... params) {
                 String classs = "net.sourceforge.jtds.jdbc.Driver";
                 String query = params[0];
                 try {
@@ -141,18 +138,18 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
         }.execute(query);
     }
 
-     @ReactMethod
+    @ReactMethod
     public void executeUpdate(String query, Promise promise) {
         sqlPromise = promise;
-        sqlNonQueryResponse=-1;
-        new AsyncTask < String, Void, Void > () {
+        sqlNonQueryResponse = -1;
+        new AsyncTask<String, Void, Void>() {
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
             }
 
             @Override
-            protected Void doInBackground(String...params) {
+            protected Void doInBackground(String... params) {
                 String classs = "net.sourceforge.jtds.jdbc.Driver";
                 String query = params[0];
                 try {
@@ -173,7 +170,7 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
             }
 
             protected void onPostExecute(Void dummy) {
-                if (sqlNonQueryResponse>-1) {
+                if (sqlNonQueryResponse > -1) {
                     sqlPromise.resolve(sqlNonQueryResponse);
                 } else {
                     sqlPromise.reject(eTag, sqlError);
