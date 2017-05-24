@@ -55,7 +55,7 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
             server = server + ":" + port;
         }
         String ConnURL = "jdbc:jtds:sqlserver://" + server + ";" + "databaseName=" + database + ";useLOBs=false"
-                + ";user=" + username + ";password=" + password + ";loginTimeout=5;socketTimeout=2;";
+                + ";user=" + username + ";password=" + password + ";loginTimeout=5;";
 
         new AsyncTask<String, Void, Void>() {
             @Override
@@ -71,13 +71,13 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
                     Class.forName(classs);
                     dbConnection = DriverManager.getConnection(ConnURL);
                 } catch (SQLException e) {
-                    Log.e(eTag, e.getMessage());
+                    Log.e(eTag, "exception", e);
                     sqlError = e.getMessage();
                 } catch (ClassNotFoundException e) {
-                    Log.e(eTag, e.getMessage());
+                    Log.e(eTag, "exception", e);
                     sqlError = e.getMessage();
                 } catch (Exception e) {
-                    Log.e(eTag, e.getMessage());
+                    Log.e(eTag, "exception", e);
                     sqlError = e.getMessage();
                 }
                 return null;
@@ -116,13 +116,13 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
                     WritableArray writableArray = ArrayUtil.toWritableArray(array);
                     sqlQueryResponse = writableArray;
                 } catch (SQLException e) {
-                    Log.e(eTag, e.getMessage());
+                    Log.e(eTag, "exception", e);
                     sqlError = e.getMessage();
                 } catch (ClassNotFoundException e) {
-                    Log.e(eTag, e.getMessage());
+                    Log.e(eTag, "exception", e);
                     sqlError = e.getMessage();
                 } catch (Exception e) {
-                    Log.e(eTag, e.getMessage());
+                    Log.e(eTag, "exception", e);
                     sqlError = e.getMessage();
                 }
                 return null;
@@ -157,13 +157,13 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
                     Statement stmt = dbConnection.createStatement();
                     sqlNonQueryResponse = stmt.executeUpdate(query);
                 } catch (SQLException e) {
-                    Log.e(eTag, e.getMessage());
+                    Log.e(eTag, "exception", e);
                     sqlError = e.getMessage();
                 } catch (ClassNotFoundException e) {
-                    Log.e(eTag, e.getMessage());
+                    Log.e(eTag, "exception", e);
                     sqlError = e.getMessage();
                 } catch (Exception e) {
-                    Log.e(eTag, e.getMessage());
+                    Log.e(eTag, "exception", e);
                     sqlError = e.getMessage();
                 }
                 return null;
@@ -194,15 +194,15 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
                 sqlPromise.resolve("Connection Closed");
             }
         } catch (SQLException e) {
-            Log.e(eTag, e.getMessage());
+            Log.e(eTag, "exception", e);
             sqlError = e.getMessage();
             sqlPromise.reject(eTag, sqlError);
         } catch (ClassNotFoundException e) {
-            Log.e(eTag, e.getMessage());
+            Log.e(eTag, "exception", e);
             sqlError = e.getMessage();
             sqlPromise.reject(eTag, sqlError);
         } catch (Exception e) {
-            Log.e(eTag, e.getMessage());
+            Log.e(eTag, "exception", e);
             sqlError = e.getMessage();
             sqlPromise.reject(eTag, sqlError);
         }
