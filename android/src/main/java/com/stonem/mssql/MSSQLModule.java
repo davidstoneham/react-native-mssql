@@ -96,6 +96,7 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void executeQuery(String query, Promise promise) {
         sqlPromise = promise;
+        sqlError = null;
 
         new AsyncTask<String, Void, Void>() {
             @Override
@@ -129,10 +130,10 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
             }
 
             protected void onPostExecute(Void dummy) {
-                if (null != sqlQueryResponse) {
-                    sqlPromise.resolve(sqlQueryResponse);
-                } else {
+                if (null != sqlError) {
                     sqlPromise.reject(eTag, sqlError);
+                } else {
+                    sqlPromise.resolve(sqlQueryResponse);
                 }
             }
         }.execute(query);
