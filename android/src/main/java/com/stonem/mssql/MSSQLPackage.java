@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Created by Kevin Johnson on 8/15/16.
+ * Created by David Stoneham on 2017-02-25.
  */
 public class MSSQLPackage implements ReactPackage {
 

@@ -31,10 +31,15 @@ import com.iodine.start.ArrayUtil;
  * Created by David Stoneham on 2017-02-25.
  */
 public class MSSQLModule extends ReactContextBaseJavaModule {
-    private WritableArray sqlQueryResponse;
-    private int sqlNonQueryResponse;
-    private String sqlError;
-    private Promise sqlPromise;
+    private WritableArray sqlResponse_query;
+    private int sqlResponse_update;
+    private String sqlError_connection;
+    private String sqlError_query;
+    private String sqlError_update;
+    private Promise sqlPromise_connection;
+    private Promise sqlPromise_query;
+    private Promise sqlPromise_update;
+
     private Connection dbConnection;
     private final String eTag = "REACT-NATIVE-MSSQL";
 
@@ -44,7 +49,7 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void connect(ReadableMap config, Promise promise) {
-        sqlPromise = promise;
+        sqlPromise_connection = promise;
         dbConnection = null;
         String server = config.getString("server");
         String username = config.getString("username");
@@ -54,17 +59,17 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
             int port = config.getInt("port");
             server = server + ":" + port;
         }
-        String ConnURL = "jdbc:jtds:sqlserver://" + server + ";" + "databaseName=" + database + ";useLOBs=false" +
-            ";user=" + username + ";password=" + password + ";loginTimeout=5;";
+        String ConnURL = "jdbc:jtds:sqlserver://" + server + ";" + "databaseName=" + database + ";useLOBs=false"
+                + ";user=" + username + ";password=" + password + ";loginTimeout=5;";
 
-        new AsyncTask < String, Void, Void > () {
+        new AsyncTask<String, Void, Void>() {
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
             }
 
             @Override
-            protected Void doInBackground(String...params) {
+            protected Void doInBackground(String... params) {
                 String classs = "net.sourceforge.jtds.jdbc.Driver";
                 String ConnURL = params[0];
                 try {
@@ -72,22 +77,22 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
                     dbConnection = DriverManager.getConnection(ConnURL);
                 } catch (SQLException e) {
                     Log.e(eTag, "exception", e);
-                    sqlError = e.getMessage();
+                    sqlError_connection = e.getMessage();
                 } catch (ClassNotFoundException e) {
                     Log.e(eTag, "exception", e);
-                    sqlError = e.getMessage();
+                    sqlError_connection = e.getMessage();
                 } catch (Exception e) {
                     Log.e(eTag, "exception", e);
-                    sqlError = e.getMessage();
+                    sqlError_connection = e.getMessage();
                 }
                 return null;
             }
 
             protected void onPostExecute(Void dummy) {
                 if (null != dbConnection) {
-                    sqlPromise.resolve("Connection Successful!");
+                    sqlPromise_connection.resolve("Connection Successful!");
                 } else {
-                    sqlPromise.reject(eTag, sqlError);
+                    sqlPromise_connection.reject(eTag, sqlError_connection);
                 }
             }
         }.execute(ConnURL);
@@ -95,16 +100,16 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void executeQuery(String query, Promise promise) {
-        sqlPromise = promise;
+        sqlPromise_query = promise;
 
-        new AsyncTask < String, Void, Void > () {
+        new AsyncTask<String, Void, Void>() {
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
             }
 
             @Override
-            protected Void doInBackground(String...params) {
+            protected Void doInBackground(String... params) {
                 String classs = "net.sourceforge.jtds.jdbc.Driver";
                 String query = params[0];
                 try {
@@ -114,25 +119,25 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
                     JSONArray json = toJSON(rs);
                     Object[] array = ArrayUtil.toArray(json);
                     WritableArray writableArray = ArrayUtil.toWritableArray(array);
-                    sqlQueryResponse = writableArray;
+                    sqlResponse_query = writableArray;
                 } catch (SQLException e) {
                     Log.e(eTag, "exception", e);
-                    sqlError = e.getMessage();
+                    sqlError_query = e.getMessage();
                 } catch (ClassNotFoundException e) {
                     Log.e(eTag, "exception", e);
-                    sqlError = e.getMessage();
+                    sqlError_query = e.getMessage();
                 } catch (Exception e) {
                     Log.e(eTag, "exception", e);
-                    sqlError = e.getMessage();
+                    sqlError_query = e.getMessage();
                 }
                 return null;
             }
 
             protected void onPostExecute(Void dummy) {
-                if (null != sqlQueryResponse) {
-                    sqlPromise.resolve(sqlQueryResponse);
+                if (null != sqlResponse_query) {
+                    sqlPromise_query.resolve(sqlResponse_query);
                 } else {
-                    sqlPromise.reject(eTag, sqlError);
+                    sqlPromise_query.reject(eTag, sqlError_query);
                 }
             }
         }.execute(query);
@@ -140,40 +145,40 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void executeUpdate(String query, Promise promise) {
-        sqlPromise = promise;
-        sqlNonQueryResponse = -1;
-        new AsyncTask < String, Void, Void > () {
+        sqlPromise_update = promise;
+        sqlResponse_update = -1;
+        new AsyncTask<String, Void, Void>() {
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
             }
 
             @Override
-            protected Void doInBackground(String...params) {
+            protected Void doInBackground(String... params) {
                 String classs = "net.sourceforge.jtds.jdbc.Driver";
                 String query = params[0];
                 try {
                     Class.forName(classs);
                     Statement stmt = dbConnection.createStatement();
-                    sqlNonQueryResponse = stmt.executeUpdate(query);
+                    sqlResponse_update = stmt.executeUpdate(query);
                 } catch (SQLException e) {
                     Log.e(eTag, "exception", e);
-                    sqlError = e.getMessage();
+                    sqlError_update = e.getMessage();
                 } catch (ClassNotFoundException e) {
                     Log.e(eTag, "exception", e);
-                    sqlError = e.getMessage();
+                    sqlError_update = e.getMessage();
                 } catch (Exception e) {
                     Log.e(eTag, "exception", e);
-                    sqlError = e.getMessage();
+                    sqlError_update = e.getMessage();
                 }
                 return null;
             }
 
             protected void onPostExecute(Void dummy) {
-                if (sqlNonQueryResponse > -1) {
-                    sqlPromise.resolve(sqlNonQueryResponse);
+                if (sqlResponse_update > -1) {
+                    sqlPromise_update.resolve(sqlResponse_update);
                 } else {
-                    sqlPromise.reject(eTag, sqlError);
+                    sqlPromise_update.reject(eTag, sqlError_update);
                 }
             }
         }.execute(query);
@@ -181,30 +186,30 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void close(Promise promise) {
-        sqlPromise = promise;
+        sqlPromise_connection = promise;
         String classs = "net.sourceforge.jtds.jdbc.Driver";
         try {
             if (null == dbConnection || dbConnection.isClosed() == true) {
-                sqlError = "There is no open database connection";
-                sqlPromise.reject(eTag, sqlError);
+                sqlError_connection = "There is no open database connection";
+                sqlPromise_connection.reject(eTag, sqlError_connection);
             } else {
                 Class.forName(classs);
                 dbConnection.close();
                 dbConnection = null;
-                sqlPromise.resolve("Connection Closed");
+                sqlPromise_connection.resolve("Connection Closed");
             }
         } catch (SQLException e) {
             Log.e(eTag, "exception", e);
-            sqlError = e.getMessage();
-            sqlPromise.reject(eTag, sqlError);
+            sqlError_connection = e.getMessage();
+            sqlPromise_connection.reject(eTag, sqlError_connection);
         } catch (ClassNotFoundException e) {
             Log.e(eTag, "exception", e);
-            sqlError = e.getMessage();
-            sqlPromise.reject(eTag, sqlError);
+            sqlError_connection = e.getMessage();
+            sqlPromise_connection.reject(eTag, sqlError_connection);
         } catch (Exception e) {
             Log.e(eTag, "exception", e);
-            sqlError = e.getMessage();
-            sqlPromise.reject(eTag, sqlError);
+            sqlError_connection = e.getMessage();
+            sqlPromise_connection.reject(eTag, sqlError_connection);
         }
     }
 
