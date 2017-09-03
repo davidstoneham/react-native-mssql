@@ -1,44 +1,24 @@
 package com.stonem.mssql;
 
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
-import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.bridge.Promise;
-import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.WritableArray;
-import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.ReadableMap;
+
 import android.util.Log;
 import android.os.AsyncTask;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.Statement;
+
 import java.sql.SQLException;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.util.Date;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Iterator;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONException;
-import com.iodine.start.ArrayUtil;
 
 /**
  * Created by David Stoneham on 2017-02-25.
  */
 public class MSSQLModule extends ReactContextBaseJavaModule {
-    private WritableArray sqlResponse_query;
-    private int sqlResponse_update;
-    private String sqlError_connection;
-    private String sqlError_query;
-    private String sqlError_update;
-    private Promise sqlPromise_connection;
-    private Promise sqlPromise_query;
-    private Promise sqlPromise_update;
+    private String sqlError;
+    private Promise sqlPromise;
 
     private Connection dbConnection;
     private final String eTag = "REACT-NATIVE-MSSQL";
@@ -49,7 +29,7 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void connect(ReadableMap config, Promise promise) {
-        sqlPromise_connection = promise;
+        sqlPromise = promise;
         dbConnection = null;
         String server = config.getString("server");
         String username = config.getString("username");
@@ -77,22 +57,22 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
                     dbConnection = DriverManager.getConnection(ConnURL);
                 } catch (SQLException e) {
                     Log.e(eTag, "exception", e);
-                    sqlError_connection = e.getMessage();
+                    sqlError = e.getMessage();
                 } catch (ClassNotFoundException e) {
                     Log.e(eTag, "exception", e);
-                    sqlError_connection = e.getMessage();
+                    sqlError = e.getMessage();
                 } catch (Exception e) {
                     Log.e(eTag, "exception", e);
-                    sqlError_connection = e.getMessage();
+                    sqlError = e.getMessage();
                 }
                 return null;
             }
 
             protected void onPostExecute(Void dummy) {
                 if (null != dbConnection) {
-                    sqlPromise_connection.resolve("Connection Successful!");
+                    sqlPromise.resolve("Connection Successful!");
                 } else {
-                    sqlPromise_connection.reject(eTag, sqlError_connection);
+                    sqlPromise.reject(eTag, sqlError);
                 }
             }
         }.execute(ConnURL);
@@ -100,188 +80,41 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void executeQuery(String query, Promise promise) {
-        sqlPromise_query = promise;
-
-        new AsyncTask<String, Void, Void>() {
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-            }
-
-            @Override
-            protected Void doInBackground(String... params) {
-                String classs = "net.sourceforge.jtds.jdbc.Driver";
-                String query = params[0];
-                try {
-                    Class.forName(classs);
-                    Statement stmt = dbConnection.createStatement();
-                    ResultSet rs = stmt.executeQuery(query);
-                    JSONArray json = toJSON(rs);
-                    Object[] array = ArrayUtil.toArray(json);
-                    WritableArray writableArray = ArrayUtil.toWritableArray(array);
-                    sqlResponse_query = writableArray;
-                } catch (SQLException e) {
-                    Log.e(eTag, "exception", e);
-                    sqlError_query = e.getMessage();
-                } catch (ClassNotFoundException e) {
-                    Log.e(eTag, "exception", e);
-                    sqlError_query = e.getMessage();
-                } catch (Exception e) {
-                    Log.e(eTag, "exception", e);
-                    sqlError_query = e.getMessage();
-                }
-                return null;
-            }
-
-            protected void onPostExecute(Void dummy) {
-                if (null != sqlResponse_query) {
-                    sqlPromise_query.resolve(sqlResponse_query);
-                } else {
-                    sqlPromise_query.reject(eTag, sqlError_query);
-                }
-            }
-        }.execute(query);
+        new Query(dbConnection, promise).execute(query);
     }
 
     @ReactMethod
     public void executeUpdate(String query, Promise promise) {
-        sqlPromise_update = promise;
-        sqlResponse_update = -1;
-        new AsyncTask<String, Void, Void>() {
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-            }
-
-            @Override
-            protected Void doInBackground(String... params) {
-                String classs = "net.sourceforge.jtds.jdbc.Driver";
-                String query = params[0];
-                try {
-                    Class.forName(classs);
-                    Statement stmt = dbConnection.createStatement();
-                    sqlResponse_update = stmt.executeUpdate(query);
-                } catch (SQLException e) {
-                    Log.e(eTag, "exception", e);
-                    sqlError_update = e.getMessage();
-                } catch (ClassNotFoundException e) {
-                    Log.e(eTag, "exception", e);
-                    sqlError_update = e.getMessage();
-                } catch (Exception e) {
-                    Log.e(eTag, "exception", e);
-                    sqlError_update = e.getMessage();
-                }
-                return null;
-            }
-
-            protected void onPostExecute(Void dummy) {
-                if (sqlResponse_update > -1) {
-                    sqlPromise_update.resolve(sqlResponse_update);
-                } else {
-                    sqlPromise_update.reject(eTag, sqlError_update);
-                }
-            }
-        }.execute(query);
+        new Update(dbConnection, promise).execute(query);
     }
 
     @ReactMethod
     public void close(Promise promise) {
-        sqlPromise_connection = promise;
+        sqlPromise = promise;
         String classs = "net.sourceforge.jtds.jdbc.Driver";
         try {
             if (null == dbConnection || dbConnection.isClosed() == true) {
-                sqlError_connection = "There is no open database connection";
-                sqlPromise_connection.reject(eTag, sqlError_connection);
+                sqlError = "There is no open database connection";
+                sqlPromise.reject(eTag, sqlError);
             } else {
                 Class.forName(classs);
                 dbConnection.close();
                 dbConnection = null;
-                sqlPromise_connection.resolve("Connection Closed");
+                sqlPromise.resolve("Connection Closed");
             }
         } catch (SQLException e) {
             Log.e(eTag, "exception", e);
-            sqlError_connection = e.getMessage();
-            sqlPromise_connection.reject(eTag, sqlError_connection);
+            sqlError = e.getMessage();
+            sqlPromise.reject(eTag, sqlError);
         } catch (ClassNotFoundException e) {
             Log.e(eTag, "exception", e);
-            sqlError_connection = e.getMessage();
-            sqlPromise_connection.reject(eTag, sqlError_connection);
+            sqlError = e.getMessage();
+            sqlPromise.reject(eTag, sqlError);
         } catch (Exception e) {
             Log.e(eTag, "exception", e);
-            sqlError_connection = e.getMessage();
-            sqlPromise_connection.reject(eTag, sqlError_connection);
+            sqlError = e.getMessage();
+            sqlPromise.reject(eTag, sqlError);
         }
-    }
-
-    private static JSONArray toJSON(ResultSet rs) throws SQLException, JSONException {
-        JSONArray json = new JSONArray();
-        ResultSetMetaData rsmd = rs.getMetaData();
-        int numColumns = rsmd.getColumnCount();
-        String column_name;
-
-        while (rs.next()) {
-            JSONObject obj = new JSONObject();
-
-            for (int i = 1; i < numColumns + 1; i++) {
-                column_name = rsmd.getColumnName(i);
-                String myValue = rs.getString(i);
-                if (!rs.wasNull()) {
-                    if (rsmd.getColumnType(i) == java.sql.Types.CHAR) {
-                        obj.put(column_name, rs.getString(i));
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.VARCHAR) {
-                        obj.put(column_name, rs.getString(i));
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.LONGVARCHAR) {
-                        obj.put(column_name, rs.getString(i));
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.BINARY) {
-                        obj.put(column_name, rs.getBytes(i));
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.VARBINARY) {
-                        obj.put(column_name, rs.getBytes(i));
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.LONGVARBINARY) {
-                        obj.put(column_name, rs.getBinaryStream(i));
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.BIT) {
-                        obj.put(column_name, rs.getBoolean(column_name));
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.TINYINT) {
-                        obj.put(column_name, rs.getInt(column_name));
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.SMALLINT) {
-                        obj.put(column_name, rs.getInt(i));
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.INTEGER) {
-                        obj.put(column_name, rs.getInt(i));
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.BIGINT) {
-                        obj.put(column_name, rs.getInt(i));
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.REAL) {
-                        obj.put(column_name, rs.getFloat(i));
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.DOUBLE) {
-                        obj.put(column_name, rs.getDouble(i));
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.FLOAT) {
-                        obj.put(column_name, rs.getFloat(i));
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.DECIMAL) {
-                        obj.put(column_name, rs.getBigDecimal(i).doubleValue());
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.NUMERIC) {
-                        obj.put(column_name, rs.getBigDecimal(i).doubleValue());
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.DATE) {
-                        obj.put(column_name, rs.getDate(i).toString());
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.TIME) {
-                        obj.put(column_name, rs.getDate(i).toString());
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.TIMESTAMP) {
-                        obj.put(column_name, rs.getTimestamp(i).toString());
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.ARRAY) {
-                        obj.put(column_name, rs.getArray(i));
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.BOOLEAN) {
-                        obj.put(column_name, rs.getBoolean(i));
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.BLOB) {
-                        obj.put(column_name, rs.getBlob(i));
-                    } else if (rsmd.getColumnType(i) == java.sql.Types.NVARCHAR) {
-                        obj.put(column_name, rs.getNString(i));
-                    } else {
-                        obj.put(column_name, rs.getObject(i));
-                    }
-                } else {
-                    obj.put(column_name, JSONObject.NULL);
-                }
-            }
-            json.put(obj);
-        }
-        return json;
     }
 
     @Override
