@@ -10,44 +10,11 @@ Please let me know your projects that use these MSSQL React Native modules. I wi
 ```shell
 npm install --save react-native-mssql
 ```
-#### Step 2 - Update Gradle Settings
+#### Step 2 - Linking dependencies
 
-```gradle
-// file: android/settings.gradle
-...
-
-include ':react-native-mssql'
-project(':react-native-mssql').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-mssql/android')
+```shell
+react-native link react-native-mssql
 ```
-
-#### Step 3 - Update app Gradle Build
-
-```gradle
-// file: android/app/build.gradle
-...
-
-dependencies {
-    ...
-    compile project(':react-native-mssql')
-}
-```
-
-#### Step 4 - MainApplication.java
-
-```java
-...
-import com.stonem.mssql.MSSQLPackage;
-
-...
-    @Override
-    protected List<ReactPackage> getPackages() {
-      return Arrays.<ReactPackage>asList(
-          ...
-          .addPackage(new MSSQLPackage())
-          ...
-```
-
-
 ## Using The Plugin
 
 ```js
