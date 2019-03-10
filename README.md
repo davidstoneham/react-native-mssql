@@ -28,7 +28,8 @@ import MSSQL from 'react-native-mssql';
         username: 'sa', //username to login to the database
         password: 'password', //password to login to the database
         database: 'admin', //the name of the database to connect to
-        port: 1234 //OPTIONAL, port of the database on the server
+        port: 1234, //OPTIONAL, port of the database on the server
+        timeout: 5, //OPTIONAL, login timeout for the server
     }
     MSSQL.connect(config);
 ```
