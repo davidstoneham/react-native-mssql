@@ -35,12 +35,18 @@ public class MSSQLModule extends ReactContextBaseJavaModule {
         String username = config.getString("username");
         String password = config.getString("password");
         String database = config.getString("database");
+        int timeout;
         if (config.hasKey("port")) {
             int port = config.getInt("port");
             server = server + ":" + port;
         }
+        if (config.hasKey("timeout")) {
+            timeout = config.getInt("timeout");
+        } else {
+            timeout = 5;
+        }
         String ConnURL = "jdbc:jtds:sqlserver://" + server + ";" + "databaseName=" + database + ";useLOBs=false"
-                + ";user=" + username + ";password=" + password + ";loginTimeout=5;";
+                + ";user=" + username + ";password=" + password + ";loginTimeout=" + timeout + ";";
 
         new AsyncTask<String, Void, Void>() {
             @Override
