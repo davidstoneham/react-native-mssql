@@ -31,27 +31,27 @@ import MSSQL from 'react-native-mssql';
         port: 1234, //OPTIONAL, port of the database on the server
         timeout: 5, //OPTIONAL, login timeout for the server
     }
-    MSSQL.connect(config);
+    const connected = await MSSQL.connect(config);
 ```
 Returns a promise indicating if the connection was successful.
 
 #### Execute SQL
 ```js
     const query = 'SELECT TOP * FROM USERS'
-    MSSQL.executeQuery(query);
+    const result = await MSSQL.executeQuery(query);
 ```
 Returns a promise with the query results. If Getting data from a table the promise will return an array of objects for each table row.
 
 #### Execute Update SQL
 ```js
     const query = 'UPDATE USERS SET Active=0'
-    MSSQL.executeUpdate(query);
+    const result = await MSSQL.executeUpdate(query);
 ```
 Returns a promise with the number of rows updated. Use this method if performing INSERT, UPDATE or DELETE statements on a database.
 
 #### Close a Database
 ```js
-    MSSQL.close();
+    const closed = await MSSQL.close();
 ```
 Closes the currently open database (if any) and returns a promise indicating if the close was successful.
 It is not necessary to open and close the database when required unless working with multiple databases.
